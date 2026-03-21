@@ -1,0 +1,71 @@
+services:
+  account-service:
+    build:
+      context: ./services/account-service
+    ports:
+      - "4001:4001"
+    environment:
+      PORT: "4001"
+      MONGODB_URI: ${MONGODB_URI}
+      SHIPMENT_SERVICE_URL: http://shipment-service:4002
+      TRACKING_SERVICE_URL: http://tracking-service:4003
+
+  shipment-service:
+    build:
+      context: ./services/shipment-service
+    ports:
+      - "4002:4002"
+    environment:
+      PORT: "4002"
+      MONGODB_URI: ${MONGODB_URI}
+      ACCOUNT_SERVICE_URL: http://account-service:4001
+      TRACKING_SERVICE_URL: http://tracking-service:4003
+
+  tracking-service:
+    build:
+      context: ./services/tracking-service
+    ports:
+      - "4003:4003"
+    environment:
+      PORT: "4003"
+      MONGODB_URI: ${MONGODB_URI}
+      ACCOUNT_SERVICE_URL: http://account-service:4001
+      SHIPMENT_SERVICE_URL: http://shipment-service:4002
+      NOTIFICATION_SERVICE_URL: http://notification-service:4004
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+    ports:
+      - "4004:4004"
+    environment:
+      PORT: "4004"
+      MONGODB_URI: ${MONGODB_URI}
+
+  # Host 3001 avoids clash with a local gateway on 3000. Set VITE_API_GATEWAY_BASE_URL=http://localhost:3001 and rebuild frontend.
+  api-gateway:
+    build:
+      context: ./api-gateway
+    ports:
+      - "3001:3000"
+    environment:
+      PORT: "3000"
+      ACCOUNT_SERVICE_URL: http://account-service:4001
+      SHIPMENT_SERVICE_URL: http://shipment-service:4002
+      TRACKING_SERVICE_URL: http://tracking-service:4003
+      NOTIFICATION_SERVICE_URL: http://notification-service:4004
+    depends_on:
+      - account-service
+      - shipment-service
+      - tracking-service
+      - notification-service
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_GATEWAY_BASE_URL: ${VITE_API_GATEWAY_BASE_URL:-http://localhost:3001}
+    ports:
+      - "8080:80"
+    depends_on:
+      - api-gateway
