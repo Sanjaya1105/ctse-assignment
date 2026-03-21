@@ -25,7 +25,7 @@ pipeline {
                 sh '''
                     set -e
                     mkdir -p "$DEPLOY_DIR"
-                    rsync -av --delete \
+                    rsync -rlptDzv --delete --no-group --no-owner \
                       --exclude '.git' \
                       --exclude '.env' \
                       "$WORKSPACE"/ "$DEPLOY_DIR"/
@@ -39,6 +39,7 @@ pipeline {
                     set -e
                     test -f "$ENV_FILE"
                     echo "Env file found at $ENV_FILE"
+                    ls -l "$ENV_FILE"
                 '''
             }
         }
