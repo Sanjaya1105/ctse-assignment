@@ -34,13 +34,13 @@ From repo root, use `npm --prefix <path> run <script>`:
 docker compose up --build -d
 ```
 
-- **Frontend (nginx):** http://localhost:8080  
+- **Frontend (nginx):** http://localhost  
 - **API gateway (published on host to avoid clashing with a local gateway on 3000):** http://localhost:3001  
 
 Copy `.env.docker.example` → `.env` in the project root (or merge) so `MONGODB_URI` is set.  
 `VITE_API_GATEWAY_BASE_URL` must match the gateway host port (default **`http://localhost:3001`**). After changing it, rebuild the frontend image: `docker compose build frontend --no-cache`.
 
-If you see **ERR_CONNECTION_REFUSED**, run `docker compose ps` — containers must be **Up**, not only **Created**. Stop anything using ports **4001–4004**, **3001**, or **8080**, or change the left side of `ports:` mappings in `docker-compose.yml`.
+If you see **ERR_CONNECTION_REFUSED**, run `docker compose ps` — containers must be **Up**, not only **Created**. Stop anything using ports **80** or **3001**, or change the left side of `ports:` mappings in `docker-compose.yml`.
 
 ## Cleanup
 

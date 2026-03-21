@@ -2,8 +2,6 @@ services:
   account-service:
     build:
       context: ./services/account-service
-    ports:
-      - "4001:4001"
     environment:
       PORT: "4001"
       MONGODB_URI: ${MONGODB_URI}
@@ -13,8 +11,6 @@ services:
   shipment-service:
     build:
       context: ./services/shipment-service
-    ports:
-      - "4002:4002"
     environment:
       PORT: "4002"
       MONGODB_URI: ${MONGODB_URI}
@@ -24,8 +20,6 @@ services:
   tracking-service:
     build:
       context: ./services/tracking-service
-    ports:
-      - "4003:4003"
     environment:
       PORT: "4003"
       MONGODB_URI: ${MONGODB_URI}
@@ -36,8 +30,6 @@ services:
   notification-service:
     build:
       context: ./services/notification-service
-    ports:
-      - "4004:4004"
     environment:
       PORT: "4004"
       MONGODB_URI: ${MONGODB_URI}
@@ -66,6 +58,6 @@ services:
       args:
         VITE_API_GATEWAY_BASE_URL: ${VITE_API_GATEWAY_BASE_URL:-http://localhost:3001}
     ports:
-      - "8080:80"
+      - "80:80"
     depends_on:
       - api-gateway
