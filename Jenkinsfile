@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        sonarQubeScanner 'sonar-scanner'
+    }
+
     environment {
         REPO_URL = 'https://github.com/Sanjaya1105/ctse-assignment.git'
         BRANCH = 'main'
@@ -25,7 +29,7 @@ pipeline {
             steps {
                 script {
                     def changedFiles = sh(
-                        script: "git diff --name-only HEAD~1 HEAD",
+                        script: "git diff --name-only HEAD~1 HEAD || true",
                         returnStdout: true
                     ).trim()
 
@@ -70,7 +74,20 @@ pipeline {
                 sh '''
                     set -e
                     test -f "$ENV_FILE"
+                    echo "Using env file: $ENV_FILE"
                 '''
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh '''
+                        set -e
+                        cd "$WORKSPACE"
+                        sonar-scanner
+                    '''
+                }
             }
         }
 
@@ -79,11 +96,13 @@ pipeline {
                 script {
                     if (env.SERVICE == "all") {
                         sh '''
+                            set -e
                             cd "$DEPLOY_DIR"
                             docker compose up --build -d
                         '''
                     } else {
                         sh """
+                            set -e
                             cd "$DEPLOY_DIR"
                             docker compose up --build -d ${env.SERVICE}
                         """
@@ -95,9 +114,11 @@ pipeline {
         stage('Smoke Test') {
             steps {
                 sh '''
+                    set -e
                     sleep 10
                     curl -I http://localhost || true
                     curl -I http://localhost:3001 || true
+                    cd "$DEPLOY_DIR"
                     docker compose ps
                 '''
             }
@@ -111,6 +132,7 @@ pipeline {
         failure {
             sh '''
                 cd "$DEPLOY_DIR" || exit 0
+                docker compose ps || true
                 docker compose logs --tail=100 || true
             '''
         }
