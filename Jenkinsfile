@@ -14,9 +14,41 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 git branch: "${BRANCH}", url: "${REPO_URL}"
+            }
+        }
+
+        stage('Detect Changes') {
+            steps {
+                script {
+                    def changedFiles = sh(
+                        script: "git diff --name-only HEAD~1 HEAD",
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Changed files:\n${changedFiles}"
+
+                    env.SERVICE = "all"
+
+                    if (changedFiles.contains("services/account-service")) {
+                        env.SERVICE = "account-service"
+                    } else if (changedFiles.contains("services/shipment-service")) {
+                        env.SERVICE = "shipment-service"
+                    } else if (changedFiles.contains("services/tracking-service")) {
+                        env.SERVICE = "tracking-service"
+                    } else if (changedFiles.contains("services/notification-service")) {
+                        env.SERVICE = "notification-service"
+                    } else if (changedFiles.contains("frontend")) {
+                        env.SERVICE = "frontend"
+                    } else if (changedFiles.contains("api-gateway")) {
+                        env.SERVICE = "api-gateway"
+                    }
+
+                    echo "Deploy target: ${env.SERVICE}"
+                }
             }
         }
 
@@ -38,31 +70,34 @@ pipeline {
                 sh '''
                     set -e
                     test -f "$ENV_FILE"
-                    echo "Env file found at $ENV_FILE"
-                    ls -l "$ENV_FILE"
                 '''
             }
         }
 
         stage('Build and Deploy') {
             steps {
-                sh '''
-                    set -e
-                    cd "$DEPLOY_DIR"
-                    docker compose down || true
-                    docker compose up --build -d
-                '''
+                script {
+                    if (env.SERVICE == "all") {
+                        sh '''
+                            cd "$DEPLOY_DIR"
+                            docker compose up --build -d
+                        '''
+                    } else {
+                        sh """
+                            cd "$DEPLOY_DIR"
+                            docker compose up --build -d ${env.SERVICE}
+                        """
+                    }
+                }
             }
         }
 
         stage('Smoke Test') {
             steps {
                 sh '''
-                    set -e
                     sleep 10
                     curl -I http://localhost || true
                     curl -I http://localhost:3001 || true
-                    cd "$DEPLOY_DIR"
                     docker compose ps
                 '''
             }
@@ -76,7 +111,6 @@ pipeline {
         failure {
             sh '''
                 cd "$DEPLOY_DIR" || exit 0
-                docker compose ps || true
                 docker compose logs --tail=100 || true
             '''
         }
