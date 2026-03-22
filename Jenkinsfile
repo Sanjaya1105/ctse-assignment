@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        sonarQubeScanner 'sonar-scanner'
-    }
-
     environment {
         REPO_URL = 'https://github.com/Sanjaya1105/ctse-assignment.git'
         BRANCH = 'main'
@@ -81,12 +77,15 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonarqube') {
-                    sh '''
-                        set -e
-                        cd "$WORKSPACE"
-                        sonar-scanner
-                    '''
+                script {
+                    def scannerHome = tool name: 'sonar-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    withSonarQubeEnv('sonarqube') {
+                        sh """
+                            set -e
+                            cd "$WORKSPACE"
+                            "${scannerHome}/bin/sonar-scanner"
+                        """
+                    }
                 }
             }
         }
