@@ -906,7 +906,7 @@ export default function App() {
 
   return (
     <div className="page">
-      <h1>CTSE Microservices via API Gateway tesssssting 5555555 2222 1111111</h1>
+      <h1>CTSE Microservices via API Gateway  5555555 2222 1111111</h1>
       <p>
         API base:{' '}
         <code>
