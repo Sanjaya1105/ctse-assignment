@@ -553,7 +553,7 @@ export default function App() {
           </p>
         )}
         <section className="card" style={{ marginBottom: '1.5rem' }}>
-          <h2>New shipping</h2>
+          <h2>New shippingii</h2>
           <p style={{ marginBottom: '0.75rem', color: '#555' }}>
             Enter category and location. Submit goes through the API gateway to
             shipment-service; shipment-service verifies your account, saves the
