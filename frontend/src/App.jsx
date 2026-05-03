@@ -793,7 +793,7 @@ export default function App() {
   if (page === 'userDetails' && currentUser) {
     return (
       <div className="page">
-        <h1>User Details</h1>
+        <h1>User Details a</h1>
         <section className="card" style={{ marginBottom: '1.5rem' }}>
           <h2>Edit / Delete User</h2>
           <form
